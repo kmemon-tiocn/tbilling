@@ -32,6 +32,8 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'django_filters',
     "django_cleanup.apps.CleanupConfig",
+    "main",
+    "api"
 ]
 
 # Middleware
@@ -99,7 +101,7 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 # Custom User Model
-# AUTH_USER_MODEL = 'modules.CustomUser'
+AUTH_USER_MODEL = 'main.User'
 LOGIN_URL = '/login/'
 LOGOUT_REDIRECT_URL = '/login/'
 

@@ -1,7 +1,7 @@
 import uuid
 import copy
 from django.db import models
-from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.contrib.auth.hashers import make_password
 from django.forms.models import model_to_dict
 
@@ -50,44 +50,71 @@ class BaseModel(models.Model):
                     self.update_history.extend(copy.deepcopy(update_record))
 
         super().save(*args, **kwargs)
+        
+        
+# Custom User Manager
+class UserManager(BaseUserManager):
+    def _create_user(self, name, email, phone_number, password, **extra_fields):
+        if not name:
+            raise ValueError('The given name must be set')
+        if not email:
+            raise ValueError('The given email must be set')
+        if not phone_number:
+            raise ValueError('The given phone number must be set')
+        user = self.model(name=name, email=email, phone_number=phone_number, **extra_fields)
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
+
+    def create_user(self, name, email, phone_number, password=None, **extra_fields):
+        extra_fields.setdefault('is_staff', False)
+        extra_fields.setdefault('is_superuser', False)
+        extra_fields.setdefault('is_active', True)  # Ensure normal users are active by default
+        return self._create_user(name, email, phone_number, password, **extra_fields)
+
+    def create_superuser(self, name, email, phone_number, password, **extra_fields):
+        extra_fields.setdefault('is_staff', True)
+        extra_fields.setdefault('is_superuser', True)
+        extra_fields.setdefault('is_active', True)  # Ensure superusers are always active
+
+        if extra_fields.get('is_staff') is not True:
+            raise ValueError('Superuser must have is_staff=True.')
+        if extra_fields.get('is_superuser') is not True:
+            raise ValueError('Superuser must have is_superuser=True.')
+
+        return self._create_user(name, email, phone_number, password, **extra_fields)
 
 
 # User model (inherits from BaseModel)
-class User(BaseModel, AbstractBaseUser):
+class User(BaseModel, AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(unique=True)
     name = models.CharField(max_length=255)
     phone_number = models.CharField(max_length=20)
     password = models.CharField(max_length=255)
-    
-    # New fields
-    type = models.CharField(max_length=50, choices=[
+
+    type = models.CharField(max_length=50, choices=[ 
         ('CustomerUser', 'Customer User'),
         ('CustomerManager', 'Customer Manager'),
         ('PartnerManager', 'Partner Manager'),
         ('PartnerUser', 'Partner User')
     ])
-    
-    # Partner and Customer Information
+
     partner = models.ForeignKey('Partner', on_delete=models.SET_NULL, null=True, blank=True)
     customer = models.ForeignKey('Customer', on_delete=models.SET_NULL, null=True, blank=True)
-    
-    is_active = models.BooleanField(default=True)
-    is_staff = models.BooleanField(default=False)
+    is_staff = models.BooleanField(default=False)  # Determines admin panel access
+    is_superuser = models.BooleanField(default=False)  # Full admin privileges
+
+    objects = UserManager()
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['name', 'phone_number']
-
-    def set_password(self, password):
-        self.password = make_password(password)
-
-    def check_password(self, password):
-        return self.password == make_password(password)
+    
+    class Meta:
+        verbose_name = "User"
+        verbose_name_plural = "Users"
 
     def __str__(self):
         return self.name
-
-    class Meta:
-        unique_together = ['email', 'type']  # Ensuring no duplicate user with the same email and type
 
 
 # Partner model (with AWS keys)
