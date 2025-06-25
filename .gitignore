@@ -12,3 +12,4 @@ __pycache__/*
 *.pem
 .vscode
 django_cache/*
+.qodo
