@@ -1,0 +1,14 @@
+*.log
+*.env
+.venv
+*.pyc
+media/profile-images/*
+media/*
+*.csv
+aws-billing-template
+__pycache__
+env/*
+__pycache__/*
+*.pem
+.vscode
+django_cache/*
