@@ -1,0 +1,486 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}                    
+    <!-- start page title -->
+    <div class="row">
+        <div class="col-12">
+            <div class="page-title-box">
+                <h4 class="page-title">Projects</h4>
+            </div>
+        </div>
+    </div>
+    <!-- end page title -->
+
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="row justify-content-between">
+                        <div class="col-md-8">
+                            <form class="d-flex flex-wrap align-items-center">
+                                <label for="inputSearch" class="visually-hidden">Search</label>
+                                <div class="me-3">
+                                    <input type="search" class="form-control my-1 my-md-0" id="inputSearch" placeholder="Search...">
+                                </div>
+                                <!-- <label for="status-select" class="me-2">Sort By</label>
+                                <div class="me-sm-3">
+                                    <select class="form-select my-1 my-md-0" id="status-select">
+                                        <option>Select</option>
+                                        <option>Date</option>
+                                        <option selected>Name</option>
+                                        <option>Revenue</option>
+                                        <option>Employees</option>
+                                    </select>
+                                </div> -->
+                            </form>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-md-end mt-3 mt-md-0">
+                                <button type="button" class="btn btn-danger waves-effect waves-light me-1" 
+                                        data-bs-toggle="modal" data-bs-target="#addProjectModal">
+                                    <i class="mdi mdi-plus-circle me-1"></i> Add New
+                                </button>
+                            </div>
+                        </div><!-- end col-->
+                    </div> <!-- end row -->
+                </div>
+            </div> <!-- end card -->
+        </div><!-- end col-->
+    </div>
+    <!-- end row -->       
+
+    <div id="projects-container" class="row">
+        {% for i in projects %}
+        <div class="col-lg-4">
+            <div class="card bg-pattern">
+                <div class="card-body">
+                    <div class="text-center">
+                        {% if i.logo %}
+                            <img src="{{ i.logo.url }}" alt="logo" class="avatar-xl rounded-circle mb-3">
+                        {% else %}
+                            <div class="avatar-xl rounded-circle m-auto mb-3 bg-soft-primary">
+                                <span class="avatar-title  text-primary font-20">
+                                    {{ i.name.0 }}
+                                </span>
+                            </div>
+                        {% endif %}
+                        <h4 class="mb-1 font-20">{{ i.name }}</h4>
+                        <p class="text-muted  font-14">{{ i.address }}</p>
+                    </div>
+
+                    <p class="font-14 text-center text-muted">
+                        {{ i.description}}
+                    </p>
+
+                    <div class="text-center">
+                      <a href="{% url 'project-detail' i.id %}"  class="btn btn-sm btn-light">View more info</a>
+                    </div>
+
+                    <div class="row mt-4 text-center">
+                        <div class="col-6">
+                            <h5 class="fw-normal text-muted">Active Tickets</h5>
+                            <h4>{{ i.number_of_active_tickets }}</h4>
+                        </div>
+                        <div class="col-6">
+                            <h5 class="fw-normal text-muted">Number of Members</h5>
+                            <h4>{{ i.number_of_members }}</h4>
+                        </div>
+                    </div>
+                    <div class="text-center">
+                      <a href="#" class="btn btn-sm btn-outline-primary me-1 edit-btn {% if i.created_by != request.user.id %}disabled{% endif %}"
+                        data-id="{{ i.id }}"
+                        data-name="{{ i.name }}"
+                        data-description="{{ i.description }}"
+                        data-start_date="{{ i.start_date|date:'Y-m-d' }}"  
+                        data-end_date="{{ i.end_date|date:'Y-m-d' }}" 
+                        data-client="{{ i.client.id }}"
+                        data-status="{{ i.status }}"
+                        data-budget="{{ i.budget }}"
+                        data-currency="{{ i.currency }}"
+                        data-bs-toggle="modal" 
+                        data-bs-target="#editProjectModal">
+                        <i class="mdi mdi-pencil-outline"></i> Edit
+                      </a>
+
+                    
+                      <a href="#" class="btn btn-sm btn-outline-danger delete-btn {% if i.created_by != request.user.id %}disabled{% endif %}"
+                         data-id="{{ i.id }}"
+                         data-bs-toggle="modal" 
+                         data-bs-target="#deleteProjectModal">
+                        <i class="mdi mdi-delete-outline"></i> Delete
+                      </a>
+                    </div>
+                </div>
+            </div> <!-- end card -->
+        </div>
+        {% endfor %}
+        
+    <!-- end row -->
+
+
+
+<!-- Add Project Modal -->
+<div class="modal fade" id="addProjectModal" tabindex="-1" aria-labelledby="addProjectModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <form id="addProjectForm" enctype="multipart/form-data">
+          {% csrf_token %}
+          <div class="modal-header">
+            <h5 class="modal-title" id="addProjectModalLabel">Add New Project</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+              <label for="projectName" class="form-label">Project Name</label>
+              <input type="text" class="form-control" id="projectName" required>
+            </div>
+            <div class="mb-3">
+              <label for="projectDescription" class="form-label">Description</label>
+              <textarea class="form-control" id="projectDescription" rows="3" required></textarea>
+            </div>
+            <div class="mb-3">
+              <label for="projectStartDate" class="form-label">Start Date</label>
+              <input type="date" class="form-control" id="projectStartDate" required>
+            </div>
+            <div class="mb-3">
+              <label for="projectEndDate" class="form-label">End Date</label>
+              <input type="date" class="form-control" id="projectEndDate" required>
+            </div>
+            <div class="mb-3">
+              <label for="projectClient" class="form-label">Client</label>
+              <select class="form-control" id="projectClient">
+                {% for client in clients %}
+                  <option value="{{ client.id }}">{{ client.name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="mb-3">
+              <label for="projectStatus" class="form-label">Status</label>
+              <select class="form-control" id="projectStatus">
+                <option value="upcoming">Upcoming</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+                <option value="completed">Completed</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label for="projectBudget" class="form-label">Budget</label>
+              <input type="number" class="form-control" id="projectBudget" step="0.01" required>
+            </div>
+            <div class="mb-3">
+              <label for="projectCurrency" class="form-label">Currency</label>
+              <select class="form-control" id="projectCurrency">
+                {% for option in currency %}
+                <option value="{{ option }}">{{ option }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="mb-3">
+              <label for="projectLogo" class="form-label">Project Logo</label>
+              <input type="file" class="form-control" id="projectLogo" accept="image/*" required>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="submit" class="btn btn-primary">Add Project</button>
+          </div>
+        </form>
+      </div>
+    </div>
+</div>
+
+<!-- Edit Project Modal -->
+<div class="modal fade" id="editProjectModal" tabindex="-1" aria-labelledby="editProjectModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <form id="editProjectForm" enctype="multipart/form-data">
+          <div class="modal-header">
+            <h5 class="modal-title" id="editProjectModalLabel">Edit Project</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <input type="hidden" id="editProjectId">
+            <div class="mb-3">
+              <label for="editProjectName" class="form-label">Project Name</label>
+              <input type="text" class="form-control" id="editProjectName" required>
+            </div>
+            <div class="mb-3">
+              <label for="editProjectDescription" class="form-label">Description</label>
+              <textarea class="form-control" id="editProjectDescription" rows="3" required></textarea>
+            </div>
+            <div class="mb-3">
+              <label for="editProjectStartDate" class="form-label">Start Date</label>
+              <input type="date" class="form-control" id="editProjectStartDate" required>
+            </div>
+            <div class="mb-3">
+              <label for="editProjectEndDate" class="form-label">End Date</label>
+              <input type="date" class="form-control" id="editProjectEndDate" required>
+            </div>
+            <div class="mb-3">
+              <label for="editProjectClient" class="form-label">Client</label>
+              <select class="form-control" id="editProjectClient">
+                {% for client in clients %}
+                  <option value="{{ client.id }}">{{ client.name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="mb-3">
+              <label for="editProjectStatus" class="form-label">Status</label>
+              <select class="form-control" id="editProjectStatus">
+                <option value="upcoming">Upcoming</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+                <option value="completed">Completed</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label for="editProjectBudget" class="form-label">Budget</label>
+              <input type="number" class="form-control" id="editProjectBudget" step="0.01">
+            </div>
+            <div class="mb-3">
+              <label for="editProjectCurrency" class="form-label">Currency</label>
+              <select class="form-control" id="editProjectCurrency">
+                <option value="USD">USD</option>
+                <option value="EUR">EUR</option>
+                <option value="INR">INR</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label for="editProjectLogo" class="form-label">Project Logo</label>
+              <input type="file" class="form-control" id="editProjectLogo" accept="image/*">
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="submit" class="btn btn-primary">Update Project</button>
+          </div>
+        </form>
+      </div>
+    </div>
+</div>
+
+<!-- Delete Project Modal -->
+<div class="modal fade" id="deleteProjectModal" tabindex="-1" aria-labelledby="deleteProjectModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="deleteProjectModalLabel">Delete Project</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          Are you sure you want to delete this project?
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-danger confirm-delete">Delete</button>
+        </div>
+      </div>
+    </div>
+</div>
+
+</div> <!-- container -->
+
+{% endblock %}
+
+{% block extra-script %}
+<script>
+  let base_url = window.location.origin;
+
+  // Handle Add Project Form Submission
+  $('#addProjectForm').on('submit', function(e) {
+    e.preventDefault();
+    
+    let formData = new FormData();
+    formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+    formData.append('name', $('#projectName').val());
+    formData.append('description', $('#projectDescription').val());
+    formData.append('start_date', $('#projectStartDate').val());
+    formData.append('end_date', $('#projectEndDate').val());
+    formData.append('client', $('#projectClient').val());
+    formData.append('status', $('#projectStatus').val());
+    formData.append('budget', $('#projectBudget').val());
+    formData.append('currency', $('#projectCurrency').val());
+    
+    // Append file if selected
+    let logoFile = $('#projectLogo')[0].files[0];
+    if (logoFile) {
+      formData.append('logo', logoFile);
+    }
+
+    $.ajax({
+      url: base_url + '/api/projects/',
+      type: 'POST',
+      data: formData,
+      contentType: false,  // Important: Prevent jQuery from processing data
+      processData: false,   // Important: Prevent jQuery from processing files
+      success: function() {
+        $('#addProjectModal').modal('hide');  // Hide modal after success
+        location.reload();  // Refresh page to show new project
+      },
+      error: function(xhr) {
+        alert('Error: ' + xhr.responseText);
+      }
+    });
+  });
+
+</script>
+<script>
+    // Populate edit modal
+    $('.edit-btn').on('click', function() {
+      $('#editProjectId').val($(this).data('id'));
+      $('#editProjectName').val($(this).data('name'));
+      $('#editProjectDescription').val($(this).data('description'));
+      $('#editProjectStartDate').val($(this).data('start_date') || '');
+      $('#editProjectEndDate').val($(this).data('end_date') || '');
+      $('#editProjectClient').val($(this).data('client'));
+      $('#editProjectStatus').val($(this).data('status'));
+      $('#editProjectBudget').val($(this).data('budget'));
+      $('#editProjectCurrency').val($(this).data('currency'));
+    });
+  // Update Project
+  $('#editProjectForm').on('submit', function(e) {
+    e.preventDefault();
+    let projectId = $('#editProjectId').val();
+    let formData = new FormData();
+    formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+    formData.append('name', $('#editProjectName').val());
+    formData.append('description', $('#editProjectDescription').val());
+    formData.append('start_date', $('#editProjectStartDate').val());
+    formData.append('end_date', $('#editProjectEndDate').val());
+    formData.append('client', $('#editProjectClient').val());
+    formData.append('status', $('#editProjectStatus').val());
+    formData.append('budget', $('#editProjectBudget').val());
+    formData.append('currency', $('#editProjectCurrency').val());
+    
+    let logoFile = $('#editProjectLogo')[0].files[0];
+    if (logoFile) {
+    formData.append('logo', logoFile);
+    }
+  
+    $.ajax({
+    url: base_url + '/api/projects/' + projectId + '/',
+    type: 'PUT',
+    data: formData,
+    contentType: false,
+    processData: false,
+    headers: {
+      'X-CSRFToken': '{{ csrf_token }}'
+    },
+    success: function() {
+      $('#editProjectModal').modal('hide');
+      location.reload();
+    },
+    error: function(xhr) {
+      alert('Error: ' + xhr.responseText);
+    }
+    });
+  });
+  
+    // Delete Project
+    $('.delete-btn').on('click', function() {
+      let projectId = $(this).data('id');
+      $('.confirm-delete').attr('data-id', projectId);
+    });
+
+    $('.confirm-delete').on('click', function() {
+      let projectId = $(this).data('id');
+      $.ajax({
+        url: base_url + '/api/projects/' + projectId + '/',
+        type: 'DELETE',
+        headers: {
+          'X-CSRFToken': '{{ csrf_token }}'
+        },
+        success: function() {
+          location.reload();
+        },
+        error: function(xhr) {
+          alert('Error: ' + xhr.responseText);
+        }
+      });
+    });
+
+    // Debounce function to limit the rate of AJAX calls
+    function debounce(func, delay) {
+      let debounceTimer;
+      return function() {
+        const context = this;
+        const args = arguments;
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => func.apply(context, args), delay);
+      };
+    }
+
+    $('#inputSearch').on('keyup', debounce(function() {
+      let query = $(this).val();
+      $.ajax({
+        url: base_url + '/api/projects/?search=' + query,
+        type: 'GET',
+        success: function(data) {
+          // Assuming the API returns data with a "results" key
+          let container = $('#projects-container');
+          container.empty(); // Clear existing project cards
+
+          if (data.results && data.results.length > 0) {
+            data.results.forEach(function(project) {
+              console.log(project);
+              let projectCard = `
+                <div class="col-lg-4">
+                  <div class="card bg-pattern">
+                    <div class="card-body">
+                      <div class="text-center">
+                        ${ project.logo ? `<img src="${ project.logo }" alt="logo" class="avatar-xl rounded-circle mb-3">` :
+                          `<div class="avatar-xl rounded-circle m-auto mb-3 bg-soft-primary">
+                            <span class="avatar-title text-primary font-20">${ project.name.charAt(0) }</span>
+                          </div>`
+                        }
+                        <h4 class="mb-1 font-20">${ project.name }</h4>
+                        <p class="text-muted font-14">${ project.address || '' }</p>
+                      </div>
+                      <p class="font-14 text-center text-muted">${ project.description || '' }</p>
+                      <div class="text-center">
+                        <a href="/projects/${ project.id }" class="btn btn-sm btn-light">View more info</a>
+                      </div>
+                      <div class="row mt-4 text-center">
+                        <div class="col-6">
+                          <h5 class="fw-normal text-muted">Budget</h5>
+                          <h4>${ project.budget } ${ project.currency }</h4>
+                        </div>
+                        <div class="col-6">
+                          <h5 class="fw-normal text-muted">Employees</h5>
+                          <h4>${ project.number_of_members || '' }</h4>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>`;
+              container.append(projectCard);
+            });
+          } else {
+            container.html('<div class="col-12"><p>No projects found.</p></div>');
+          }
+        },
+        error: function(xhr) {
+          console.error('Error: ' + xhr.responseText);
+        }
+      });
+    }, 300)); // 300ms delay
+
+  $('#status-select').on('change', function() {
+    let ordering = $(this).val().toLowerCase();
+    $.ajax({
+      url: base_url + '/api/projects/?ordering=' + ordering,
+      type: 'GET',
+      success: function(data) {
+        // Re-render the project list with sorted data
+        console.log(data);
+      },
+      error: function(xhr) {
+        console.error('Error: ' + xhr.responseText);
+      }
+    });
+  });
+
+  </script>
+{% endblock %}
+

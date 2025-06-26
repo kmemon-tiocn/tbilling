@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
 from django.views import View
 
 class LoginView(View):
@@ -28,3 +28,8 @@ class LoginView(View):
         except Exception as e:
             context['modal_error'] = 'An error occurred during login. Please try again.'
         return render(request, 'auth-login.html', context)
+
+class LogoutView(View):
+    def post(self, request):
+        logout(request)
+        return redirect('login')
