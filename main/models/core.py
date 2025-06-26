@@ -107,27 +107,27 @@ class Customer(BaseModel):
     class Meta:
         unique_together = ['customer_name', 'partner']
 
-
+REQUEST_STATUS_CHOICES = (
+    ('REQUESTED', 'Requested'),
+    ('OPEN', 'Open'),
+    ('CANCELED', 'Canceled'),
+    ('ACCEPTED', 'Accepted'),
+    ('DECLINED', 'Declined'),
+    ('EXPIRED', 'Expired'),
+)
 
 class AwsAccount(BaseModel):
-    group = models.ForeignKey('Group', on_delete=models.CASCADE, related_name="aws_accounts")
-    partner = models.ForeignKey(Partner, on_delete=models.CASCADE, related_name="aws_accounts")
-    customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name="aws_accounts")
-    aws_mail = models.EmailField()  
-
-
-    invitation = models.BooleanField(default=False) 
-    invitation_status = models.CharField(
-        max_length=10,
-        choices=[('pending', 'Pending'), ('accepted', 'Accepted'), ('rejected', 'Rejected')],
-        default='pending'
-    )
+    account_id = models.CharField(max_length=100, unique=True)
+    customer = models.ForeignKey(Customer, on_delete=models.SET_NULL, null=True, blank=True, related_name="aws_accounts")
+    email = models.EmailField(null=True, blank=True)
+    name = models.CharField(max_length=50, null=True, blank=True)
+    invitation_status = models.CharField(max_length=30, choices=REQUEST_STATUS_CHOICES, default='REQUESTED')
+    invitation_id = models.CharField(max_length=50, null=True, blank=True)
+    group = models.ForeignKey('Group', on_delete=models.SET_NULL, null=True, blank=True, related_name="aws_accounts")
+    is_approved = models.BooleanField(default=False)
 
     def __str__(self):
-        return f"AWS Account - {self.aws_mail}"
-
-    class Meta:
-        unique_together = ['aws_mail', 'customer', 'partner']  # Ensuring unique AWS account by email, customer, and partner
+        return f"AWS Account - {self.email}"
 
 
 # Group model

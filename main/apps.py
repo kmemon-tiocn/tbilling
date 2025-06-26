@@ -6,4 +6,4 @@ class MainConfig(AppConfig):
     name = "main"
 
     def ready(self):
-        import main.signals.partner_manager_signal
+        import main.signals

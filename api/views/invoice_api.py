@@ -23,8 +23,17 @@ class GetInvoiceAPIView(APIView):
             # Response data initialization
             response_data = []
             today = datetime.today()
-            bill_start_date = (today.replace(day=1) - timedelta(days=1)).replace(day=1)
-            bill_end_date = today.replace(day=1)
+
+            # First day of the current month
+            first_of_this_month = today.replace(day=1)
+
+            # Last day of the previous month = 1st of this month - 1 day
+            bill_end_date = first_of_this_month - timedelta(days=1)
+
+            # First day of the previous month = replace day=1 on bill_end_date
+            bill_start_date = bill_end_date.replace(day=1)
+
+            # Invoice date is today
             invoice_date = today.date()
 
             # Check if an invoice already exists for the current billing period
