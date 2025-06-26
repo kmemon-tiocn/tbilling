@@ -50,7 +50,16 @@ def process_invoice_csv_data(invoice):
             try:
                 aws_account_id = str(row.get('lineItem/UsageAccountId', '')).strip()
                 service_name = str(row.get('product/ProductName', '')).strip()
+                
+                if service_name == "nan" or service_name == "NaN" or service_name == None:
+                    service_name = str(row.get('lineItem/LineItemDescription', '')).strip()
+                    if service_name == "nan" or service_name == "NaN" or service_name == None:
+                        service_name = "Unknown Service"
+                    
                 region = str(row.get('product/region', 'us-east-1')).strip() or "us-east-1"
+                
+                if region == "nan" or region == "NaN" or region == None:
+                    region = "global"
 
                 usage_start_date = clean_date(row.get('lineItem/UsageStartDate', ''))
                 usage_end_date = clean_date(row.get('lineItem/UsageEndDate', ''))

@@ -86,20 +86,15 @@ class Partner(BaseModel):
     website = models.URLField(null=True, blank=True)
     contact_number = models.CharField(max_length=20)
 
-    # New AWS Keys
-    aws_access_key_id = models.CharField(max_length=255, null=True, blank=True)
-    aws_secret_access_key = models.CharField(max_length=255, null=True, blank=True)
-
     def __str__(self):
         return self.name
 
 
 
 class Customer(BaseModel):
-    provider_name = models.CharField(max_length=255)
-    customer_name = models.CharField(max_length=255)
-    business_id = models.CharField(max_length=100, unique=True)
     partner = models.ForeignKey(Partner, on_delete=models.CASCADE, related_name="customers")
+    customer_name = models.CharField(max_length=255)
+    business_id = models.CharField(max_length=100, unique=True, default=uuid.uuid4)
 
     def __str__(self):
         return self.customer_name
