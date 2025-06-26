@@ -18,9 +18,9 @@ class LoginView(View):
                 return render(request, 'auth-login.html', context)
             user = authenticate(request, username=email, password=password)
             if user is not None:
-                if user.is_active:
+                if user.is_active and user.type in ['CustomerUser', 'CustomerManager', 'PartnerManager', 'PartnerUser']:
                     login(request, user)
-                    return redirect('dashboard')  # Redirect to dashboard
+                    return redirect('dashboard')
                 else:
                     context['modal_error'] = 'Your account is inactive. Please contact admin.'
             else:
