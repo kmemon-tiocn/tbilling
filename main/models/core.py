@@ -52,7 +52,6 @@ class BaseModel(models.Model):
         super().save(*args, **kwargs)
         
         
-# Custom User Manager
 class UserManager(BaseUserManager):
     def _create_user(self, name, email, phone_number, password, **extra_fields):
         if not name:
@@ -85,7 +84,6 @@ class UserManager(BaseUserManager):
         return self._create_user(name, email, phone_number, password, **extra_fields)
 
 
-# User model (inherits from BaseModel)
 class User(BaseModel, AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(unique=True)
     name = models.CharField(max_length=255)
@@ -101,8 +99,8 @@ class User(BaseModel, AbstractBaseUser, PermissionsMixin):
 
     partner = models.ForeignKey('Partner', on_delete=models.SET_NULL, null=True, blank=True)
     customer = models.ForeignKey('Customer', on_delete=models.SET_NULL, null=True, blank=True)
-    is_staff = models.BooleanField(default=False)  # Determines admin panel access
-    is_superuser = models.BooleanField(default=False)  # Full admin privileges
+    is_staff = models.BooleanField(default=False) 
+    is_superuser = models.BooleanField(default=False)
 
     objects = UserManager()
 
@@ -117,7 +115,6 @@ class User(BaseModel, AbstractBaseUser, PermissionsMixin):
         return self.name
 
 
-# Partner model (with AWS keys)
 class Partner(BaseModel):
     name = models.CharField(max_length=255)
     email = models.EmailField(unique=True)
@@ -133,7 +130,7 @@ class Partner(BaseModel):
         return self.name
 
 
-# Customer model
+
 class Customer(BaseModel):
     provider_name = models.CharField(max_length=255)
     customer_name = models.CharField(max_length=255)
@@ -144,18 +141,18 @@ class Customer(BaseModel):
         return self.customer_name
 
     class Meta:
-        unique_together = ['customer_name', 'partner']  # Ensuring that a customer with the same name cannot be repeated under the same partner
+        unique_together = ['customer_name', 'partner']
 
 
-# AwsAccount model (with invitation status)
+
 class AwsAccount(BaseModel):
     group = models.ForeignKey('Group', on_delete=models.CASCADE, related_name="aws_accounts")
     partner = models.ForeignKey(Partner, on_delete=models.CASCADE, related_name="aws_accounts")
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name="aws_accounts")
-    aws_mail = models.EmailField()  # AWS-related email
+    aws_mail = models.EmailField()  
 
-    # New fields for invitation and status
-    invitation = models.BooleanField(default=False)  # Whether the AWS account is invited
+
+    invitation = models.BooleanField(default=False) 
     invitation_status = models.CharField(
         max_length=10,
         choices=[('pending', 'Pending'), ('accepted', 'Accepted'), ('rejected', 'Rejected')],
