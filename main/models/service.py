@@ -1,4 +1,5 @@
 from django.db import models
+from main.models import *
 from .core import *
 
 GENERIC_UNIT_CHOICES = (
@@ -27,7 +28,7 @@ class AccountService(BaseModel):
     aws_account = models.ForeignKey(AwsAccount, on_delete=models.CASCADE, related_name='account_services')
     service = models.ForeignKey(Service, on_delete=models.CASCADE, related_name='account_services')
     
-    invoice = models.ForeignKey('modules.RootInvoice', on_delete=models.CASCADE)
+    invoice = models.ForeignKey(RootInvoice, on_delete=models.CASCADE)
 
     blended_cost = models.FloatField(default=0) #csv_column_name = lineItem/BlendedCost
     usage_amount = models.FloatField(default=0)  #csv_column_name = lineItem/UsageAmount
