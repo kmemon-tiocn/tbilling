@@ -24,11 +24,15 @@ class ForgotPasswordView(View):
             user = User.objects.get(email=email)
             token = default_token_generator.make_token(user)
             uid = urlsafe_base64_encode(force_bytes(user.pk))
-            reset_url = request.build_absolute_uri(f"/reset/{uid}/{token}/")
+            protocol = 'https' if request.is_secure() else 'http'
+            domain = request.get_host()
             subject = 'Password Reset Requested'
             message = render_to_string('password_reset_email.html', {
                 'user': user,
-                'reset_url': reset_url,
+                'uid': uid,
+                'token': token,
+                'protocol': protocol,
+                'domain': domain,
             })
             send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [user.email], fail_silently=False)
             return render(request, 'password_reset_done.html')

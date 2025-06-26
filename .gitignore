@@ -15,4 +15,3 @@ django_cache/*
 .qodo
 venv
 ref_templates
-templates
